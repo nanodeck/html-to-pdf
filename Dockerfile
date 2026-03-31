@@ -18,18 +18,16 @@ FROM ubuntu:24.04@sha256:186072bba1b2f436cbb91ef2567abca677337cfc786c86e107d25b7
 WORKDIR /app
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Copy Node.js runtime from official image (node + npm/npx for playwright install-deps)
+# Copy only the Node.js binary (no npm/npx — eliminates bundled npm vulnerabilities)
 COPY --from=deps /usr/local/bin/node /usr/local/bin/node
-COPY --from=deps /usr/local/lib/node_modules /usr/local/lib/node_modules
-RUN ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
-  && ln -s /usr/local/lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx
 
 # Create non-root user (remove default ubuntu user/group first if present)
 RUN userdel -r ubuntu 2>/dev/null || true \
   && groupadd --gid 1000 node \
   && useradd --uid 1000 --gid node --shell /bin/false --create-home node
 
-# Install system packages: fonts, tini, and upgrade for security patches
+# Install system packages: fonts, Chromium runtime deps, tini, and upgrade for security patches
+# Chromium deps list from: npx playwright install-deps --dry-run chromium
 RUN apt-get update \
   && apt-get upgrade -y \
   && apt-get install -y --no-install-recommends \
@@ -37,14 +35,43 @@ RUN apt-get update \
     debconf-utils \
     fontconfig \
     fonts-freefont-ttf \
+    fonts-ipafont-gothic \
     fonts-liberation \
     fonts-noto \
     fonts-noto-cjk \
     fonts-noto-color-emoji \
+    fonts-tlwg-loma-otf \
+    fonts-unifont \
+    fonts-wqy-zenhei \
+    libasound2t64 \
+    libatk-bridge2.0-0t64 \
+    libatk1.0-0t64 \
+    libatspi2.0-0t64 \
+    libcairo2 \
+    libcups2t64 \
+    libdbus-1-3 \
+    libdrm2 \
+    libfontconfig1 \
+    libfreetype6 \
+    libgbm1 \
+    libglib2.0-0t64 \
+    libnspr4 \
+    libnss3 \
+    libpango-1.0-0 \
+    libx11-6 \
+    libxcb1 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxext6 \
+    libxfixes3 \
+    libxkbcommon0 \
+    libxrandr2 \
     tini \
+    xfonts-cyrillic \
+    xfonts-scalable \
   && echo "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true" | debconf-set-selections \
   && apt-get install -y --no-install-recommends ttf-mscorefonts-installer \
-  && apt-get purge -y --auto-remove debconf-utils \
+  && apt-get purge -y --auto-remove debconf-utils wget patch xvfb xserver-common \
   && rm -rf /var/lib/apt/lists/* /var/cache/apt/* /usr/share/doc/* /usr/share/man/* /usr/share/locale/*
 
 # Copy application artifacts
@@ -60,10 +87,6 @@ ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 ENV PDF_CHROMIUM_ARGS=""
 ENV PDF_DISABLE_SANDBOX=false
 ENV PDF_MAX_THUMBNAIL_PAGES=10
-
-# Install Chromium runtime dependencies (officially supports Ubuntu 24.04)
-RUN npx playwright install-deps chromium \
-  && rm -rf /var/lib/apt/lists/*
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
   CMD node -e "fetch('http://localhost:3333/health').then(r=>{if(!r.ok)throw r.status}).catch(()=>process.exit(1))"
