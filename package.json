@@ -81,6 +81,14 @@
   "resolutions": {
     "@japa/core": "10.3.0"
   },
+  "overrides": {
+    "tar": "^7.5.11",
+    "minimatch": "^9.0.7",
+    "glob": "^10.5.0",
+    "cross-spawn": "^7.0.5",
+    "brace-expansion": "^2.0.2",
+    "diff": "^5.2.2"
+  },
   "eslintConfig": {
     "extends": "@adonisjs/eslint-config/app"
   },
