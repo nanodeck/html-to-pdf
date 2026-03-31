@@ -1,0 +1,178 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: html-to-pdf
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: html-to-pdf
+  namespace: html-to-pdf
+type: Opaque
+stringData:
+  APP_KEY: "CHANGE-ME-generate-with-node-ace-generate-key"
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: html-to-pdf
+  namespace: html-to-pdf
+data:
+  NODE_ENV: "production"
+  HOST: "0.0.0.0"
+  PORT: "3333"
+  LOG_LEVEL: "info"
+  TZ: "UTC"
+  APP_URL: "https://html-to-pdf.example.com"
+  APP_NAME: "html-to-pdf"
+  APP_VERSION: "1.0.0"
+  REQUEST_BODY_LIMIT: "5mb"
+  PDF_ALLOW_REMOTE: "false"
+  PDF_DISABLE_SANDBOX: "false"
+  PDF_TIMEOUT_MS: "20000"
+  PDF_NAVIGATION_TIMEOUT_MS: "10000"
+  PDF_MAX_HTML_SIZE: "2097152"
+  PDF_STORAGE_ENABLED: "true"
+  PDF_STORAGE_EXPIRY: "1h"
+  PDF_STORAGE_RETENTION: "24h"
+  RATE_LIMIT_REQUESTS: "60"
+  RATE_LIMIT_DURATION: "1 minute"
+  RATE_LIMIT_BLOCK_FOR: "5 minutes"
+  LIMITER_STORE: "memory"
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: html-to-pdf-storage
+  namespace: html-to-pdf
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: html-to-pdf
+  namespace: html-to-pdf
+  labels:
+    app: html-to-pdf
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: html-to-pdf
+  template:
+    metadata:
+      labels:
+        app: html-to-pdf
+    spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+        - name: html-to-pdf
+          image: html-to-pdf:latest
+          ports:
+            - containerPort: 3333
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: html-to-pdf
+            - secretRef:
+                name: html-to-pdf
+          volumeMounts:
+            - name: storage
+              mountPath: /app/storage
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3333
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3333
+            initialDelaySeconds: 10
+            periodSeconds: 30
+      volumes:
+        - name: storage
+          persistentVolumeClaim:
+            claimName: html-to-pdf-storage
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: html-to-pdf
+  namespace: html-to-pdf
+spec:
+  selector:
+    app: html-to-pdf
+  ports:
+    - port: 80
+      targetPort: 3333
+      protocol: TCP
+  type: ClusterIP
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: html-to-pdf-storage-cleanup
+  namespace: html-to-pdf
+spec:
+  schedule: "0 * * * *"  # Every hour
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      activeDeadlineSeconds: 300
+      template:
+        spec:
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+            fsGroup: 1000
+          restartPolicy: OnFailure
+          containers:
+            - name: cleanup
+              image: html-to-pdf:latest
+              command: ["node", "build/bin/console.js", "storage:cleanup"]
+              envFrom:
+                - configMapRef:
+                    name: html-to-pdf
+                - secretRef:
+                    name: html-to-pdf
+              volumeMounts:
+                - name: storage
+                  mountPath: /app/storage
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+                limits:
+                  cpu: 250m
+                  memory: 512Mi
+          volumes:
+            - name: storage
+              persistentVolumeClaim:
+                claimName: html-to-pdf-storage
