@@ -30,6 +30,7 @@ export default await Env.create(new URL('../', import.meta.url), {
   LIMITER_STORE: Env.schema.enum(['memory'] as const),
 
   PDF_CHROMIUM_ARGS: Env.schema.string.optional(),
+  PDF_CHROMIUM_EXECUTABLE_PATH: Env.schema.string.optional(),
   PDF_DISABLE_SANDBOX: Env.schema.boolean.optional(),
   PDF_TIMEOUT_MS: Env.schema.number(),
   PDF_NAVIGATION_TIMEOUT_MS: Env.schema.number(),

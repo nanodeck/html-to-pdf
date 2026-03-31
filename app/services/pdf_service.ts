@@ -87,9 +87,12 @@ export class PdfService {
   private async launchBrowser(): Promise<Browser> {
     const args = buildChromiumLaunchArgs(this.parseArgs(), env.get('PDF_DISABLE_SANDBOX', false))
 
+    const executablePath = env.get('PDF_CHROMIUM_EXECUTABLE_PATH', '')
+
     try {
       return await chromium.launch({
         args,
+        ...(executablePath ? { executablePath } : {}),
       })
     } catch (error) {
       const message =

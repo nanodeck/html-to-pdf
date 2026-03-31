@@ -122,6 +122,7 @@ Key settings:
 | `PDF_MAX_HTML_SIZE` | Maximum HTML payload size in bytes | `2097152` (2 MB) |
 | `PDF_ALLOW_REMOTE` | Allow remote resources | `false` |
 | `PDF_CHROMIUM_ARGS` | Additional Chromium launch args (space-separated) | none |
+| `PDF_CHROMIUM_EXECUTABLE_PATH` | Path to a custom Chromium binary (e.g. system-installed Chromium) | Playwright built-in |
 | `PDF_DISABLE_SANDBOX` | Disable Chromium sandboxing (use only if deployment requires it) | `false` |
 | `PDF_TIMEOUT_MS` | General Playwright timeout (ms) | `20000` |
 | `PDF_NAVIGATION_TIMEOUT_MS` | Navigation timeout (ms) | `10000` |
