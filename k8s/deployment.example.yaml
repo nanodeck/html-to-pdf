@@ -80,7 +80,8 @@ spec:
         fsGroup: 1000
       containers:
         - name: html-to-pdf
-          image: html-to-pdf:latest
+          # Replace <version> with a release tag (e.g. v1.0.0) or use 'main' for latest
+          image: ghcr.io/nanodeck/html-to-pdf:<version>
           ports:
             - containerPort: 3333
               protocol: TCP
@@ -155,7 +156,8 @@ spec:
           restartPolicy: OnFailure
           containers:
             - name: cleanup
-              image: html-to-pdf:latest
+              # Replace <version> with a release tag (e.g. v1.0.0) or use 'main' for latest
+          image: ghcr.io/nanodeck/html-to-pdf:<version>
               command: ["node", "build/bin/console.js", "storage:cleanup"]
               envFrom:
                 - configMapRef:

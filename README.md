@@ -159,24 +159,38 @@ Common OTLP settings:
 - `OTEL_SERVICE_NAME`: overrides the service name if set (otherwise uses `APP_NAME`)
 
 ## Kubernetes
-An example manifest is provided in [`k8s/deployment.example.yaml`](k8s/deployment.example.yaml). It includes a Deployment, Service, PVC for storage, and a CronJob that runs `storage:cleanup` every hour. Update the `APP_KEY` secret and `APP_URL` before applying.
+An example manifest is provided in [`k8s/deployment.example.yaml`](k8s/deployment.example.yaml). It includes a Namespace, Secret, ConfigMap, PVC, Deployment, Service, and a CronJob that runs `storage:cleanup` every hour.
+
+Before applying:
+1. Replace `<version>` in the image references with a release tag (e.g. `v1.0.0`) or `main` for latest.
+2. Set `APP_KEY` in the Secret (generate with `node ace generate:key`).
+3. Set `APP_URL` in the ConfigMap to your public-facing URL.
 
 ```bash
+# Apply all resources
 kubectl apply -f k8s/deployment.example.yaml
+
+# Verify the deployment
+kubectl -n html-to-pdf get pods
 ```
 
 ## Docker
+
+Pre-built images are available on GitHub Container Registry:
+
+```bash
+docker run --rm -p 3333:3333 --env-file .env ghcr.io/nanodeck/html-to-pdf:latest
+```
+
+Pin to a specific version:
+```bash
+docker run --rm -p 3333:3333 --env-file .env ghcr.io/nanodeck/html-to-pdf:v1.0.0
+```
+
+Or build locally:
 ```bash
 docker build -t html-to-pdf .
 docker run --rm -p 3333:3333 --env-file .env html-to-pdf
-```
-
-With OTLP exporter (common for Docker Compose):
-```bash
-docker run --rm -p 3333:3333 \\
-  -e OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317 \\
-  -e OTEL_SERVICE_NAME=html-to-pdf \\
-  html-to-pdf
 ```
 
 ## Development
@@ -202,11 +216,9 @@ npm run typecheck
 ## Contributing
 See `CONTRIBUTING.md` for setup, workflow, and pull request guidance.
 
-## Publishing Checklist
-- Review `LICENSE` and confirm the copyright holder.
-- Update the security contact in `SECURITY.md`.
-- Verify `.env` is not committed and `.env.example` is current.
-- Ensure `package.json` name/description/version are accurate.
+## Deployment Checklist
+- Ensure Docker image tag and K8s manifests point to the correct version.
+- Confirm environment variables are set for the target environment.
 
 ## License
 MIT (see `LICENSE`).
