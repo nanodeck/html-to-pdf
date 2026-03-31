@@ -38,6 +38,20 @@ jobs:
         env:
           APP_KEY: testtesttesttesttest
           NODE_ENV: test
+          LOG_LEVEL: info
+          REQUEST_BODY_LIMIT: 5mb
+          RATE_LIMIT_REQUESTS: 60
+          RATE_LIMIT_DURATION: 1 minute
+          LIMITER_STORE: memory
+          PDF_TIMEOUT_MS: 20000
+          PDF_NAVIGATION_TIMEOUT_MS: 10000
+          PDF_VIEWPORT_WIDTH: 1280
+          PDF_VIEWPORT_HEIGHT: 720
+          PDF_WAIT_UNTIL: load
+          PDF_ALLOW_REMOTE: false
+          PDF_MAX_HTML_SIZE: 2097152
+          PDF_THUMBNAIL_MAX_WIDTH: 800
+          DRIVE_DISK: fs
 
   docker:
     needs: test
