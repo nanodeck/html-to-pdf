@@ -26,34 +26,35 @@ RUN addgroup -g 1000 node && adduser -u 1000 -G node -s /bin/false -D node
 # Upgrade base packages for security patches, then install Chromium, fonts, and tini
 RUN apk upgrade --no-cache \
   && apk add --no-cache \
-    libstdc++ \
-    chromium \
-    font-liberation \
-    font-noto \
-    font-noto-cjk \
-    font-noto-emoji \
-    fontconfig \
-    freetype \
-    harfbuzz \
-    nss \
-    tini \
+  libstdc++ \
+  chromium \
+  font-liberation \
+  font-noto \
+  font-noto-cjk \
+  font-noto-emoji \
+  fontconfig \
+  freetype \
+  harfbuzz \
+  nss \
+  tini \
   && fc-cache -f
 
 # Install Microsoft Core Fonts manually (no installer on Alpine)
 RUN apk add --no-cache --virtual .fetch-deps curl cabextract \
   && mkdir -p /usr/share/fonts/truetype/msttcorefonts \
   && for font in andale32 arial32 arialb32 comic32 courie32 georgi32 impact32 times32 trebuc32 verdan32 webdin32; do \
-       curl -sL "https://master.dl.sourceforge.net/project/corefonts/the%20fonts/final/${font}.exe" -o /tmp/${font}.exe \
-       && cabextract -q -d /usr/share/fonts/truetype/msttcorefonts /tmp/${font}.exe \
-       && rm /tmp/${font}.exe; \
-     done \
+  curl -sL "https://master.dl.sourceforge.net/project/corefonts/the%20fonts/final/${font}.exe" -o /tmp/${font}.exe \
+  && cabextract -q -d /usr/share/fonts/truetype/msttcorefonts /tmp/${font}.exe \
+  && rm /tmp/${font}.exe; \
+  done \
   && fc-cache -f \
   && apk del .fetch-deps
 
-# Copy application artifacts
-COPY --from=build /app/build ./build
-COPY --from=build /app/package.json ./package.json
+# Copy build output directly into /app
+COPY --from=build /app/build/ ./
 COPY --from=deps /app/node_modules ./node_modules
+
+RUN mkdir -p /app/storage && chown node:node /app/storage
 
 ENV NODE_ENV=production
 ENV HOST=0.0.0.0
@@ -69,4 +70,4 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
 USER node
 EXPOSE 3333
 ENTRYPOINT ["tini", "--"]
-CMD ["node", "build/bin/server.js"]
+CMD ["node", "bin/server.js"]

@@ -78,6 +78,13 @@ export default defineConfig({
   | and add additional suites.
   |
   */
+  metaFiles: [
+    {
+      pattern: 'resources/views/**/*.edge',
+      reloadServer: false,
+    },
+  ],
+
   tests: {
     suites: [
       {
