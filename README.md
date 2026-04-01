@@ -1,19 +1,62 @@
+![CI](https://github.com/nanodeck/html-to-pdf/actions/workflows/ci.yml/badge.svg)
+![GitHub Release](https://img.shields.io/github/v/release/nanodeck/html-to-pdf)
+![License: MIT](https://img.shields.io/github/license/nanodeck/html-to-pdf)
+![Node](https://img.shields.io/badge/node-24-green?logo=node.js)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
+![Playwright](https://img.shields.io/badge/Playwright-Chromium-2EAD33?logo=playwright)
+![Docker](https://img.shields.io/badge/ghcr.io-nanodeck%2Fhtml--to--pdf-blue?logo=docker)
+![Trivy](https://img.shields.io/badge/Trivy-0%20vulnerabilities-success?logo=aquasecurity)
+
 # HTML to PDF API
 
-Fast, hardened HTML-to-PDF rendering service built with Playwright. It exposes a simple HTTP API, OpenAPI docs, and an MCP tool for agent workflows.
+Self-hosted API to convert HTML to high-quality PDF documents using headless Chromium. Supports custom page sizes, margins, backgrounds, thumbnails, and file storage. Ships as a lightweight Docker image with an MCP tool for AI agent workflows.
 
-## Highlights
-- Render HTML to PDF with Playwright Chromium.
-- Hardened by default: remote resources blocked unless explicitly enabled.
-- Rate limiting built in.
-- OpenAPI JSON and Swagger UI included.
-- MCP tool endpoint for agent-based workflows.
+## Features
+
+- **HTML to PDF rendering** — convert any HTML string to a pixel-perfect PDF via Playwright Chromium
+- **Thumbnail generation** — automatically generate PNG or JPEG thumbnails of rendered pages
+- **File storage & signed URLs** — persist PDFs and thumbnails to local disk, S3, or Google Cloud Storage with time-limited download links
+- **Hardened by default** — remote resources blocked unless explicitly enabled (`PDF_ALLOW_REMOTE`)
+- **Rate limiting** — built-in configurable rate limiter to protect against abuse
+- **OpenAPI documentation** — interactive Scalar UI at `/api`
+- **MCP tool** — `html_to_pdf` tool for AI agent and LLM-based workflows
+- **Multi-arch Docker image** — linux/amd64 and linux/arm64
+
+## Use Cases
+
+- Generate invoices, receipts, and reports from HTML templates
+- Build document generation microservices for SaaS platforms
+- Create PDF exports for dashboards, charts, and data visualizations
+- Automate PDF generation in CI/CD pipelines
+- Integrate PDF rendering into AI agent workflows via MCP
 
 ## Quickstart
 ```bash
 docker run --rm -p 3333:3333 \
-  -e APP_KEY=$(openssl rand -hex 16) \
+  -e APP_KEY=$(openssl rand -base64 32) \
   -e NODE_ENV=production \
+  ghcr.io/nanodeck/html-to-pdf:latest
+```
+
+With all configuration options:
+
+```bash
+docker run --rm -p 3333:3333 \
+  -e APP_KEY=$(openssl rand -base64 32) \
+  -e NODE_ENV=production \
+  -e HOST=0.0.0.0 \
+  -e PORT=3333 \
+  -e LOG_LEVEL=info \
+  -e APP_URL=http://localhost:3333 \
+  -e REQUEST_BODY_LIMIT=5mb \
+  -e PDF_MAX_HTML_SIZE=2097152 \
+  -e PDF_ALLOW_REMOTE=false \
+  -e PDF_TIMEOUT_MS=20000 \
+  -e PDF_NAVIGATION_TIMEOUT_MS=10000 \
+  -e PDF_STORAGE_ENABLED=false \
+  -e RATE_LIMIT_REQUESTS=60 \
+  -e RATE_LIMIT_DURATION="1 minute" \
+  -e RATE_LIMIT_BLOCK_FOR="5 minutes" \
   ghcr.io/nanodeck/html-to-pdf:latest
 ```
 
@@ -119,14 +162,24 @@ node ace storage:cleanup --dry-run          # Preview what would be deleted
 ## Configuration
 All config is env-driven (see `.env.example`).
 
-Key settings:
+### General
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `REQUEST_BODY_LIMIT` | Request body size limit | `5mb` |
+| `APP_KEY` | Encryption key (**required**, generate with `openssl rand -base64 32`) | — |
+| `NODE_ENV` | Environment (`development`, `production`, `test`) | `development` |
+| `PORT` | HTTP port | `3333` |
+| `HOST` | Bind address | `0.0.0.0` |
+| `LOG_LEVEL` | Log level | `info` |
+| `APP_URL` | Public-facing URL for signed download URLs | `http://localhost:3333` |
 | `APP_NAME` | Service name for observability | `html-to-pdf` |
 | `APP_VERSION` | Service version for observability | `0.0.0` |
 | `APP_ENV` | Service environment for observability | `NODE_ENV` |
+| `REQUEST_BODY_LIMIT` | Request body size limit | `5mb` |
+
+### PDF Rendering
+| Variable | Description | Default |
+|----------|-------------|---------|
 | `PDF_MAX_HTML_SIZE` | Maximum HTML payload size in bytes | `2097152` (2 MB) |
 | `PDF_ALLOW_REMOTE` | Allow remote resources | `false` |
 | `PDF_CHROMIUM_ARGS` | Additional Chromium launch args (space-separated) | none |
@@ -139,10 +192,14 @@ Key settings:
 | `PDF_WAIT_UNTIL` | Page load event: `load`, `domcontentloaded`, or `networkidle` | `load` |
 | `PDF_THUMBNAIL_MAX_WIDTH` | Maximum thumbnail width (px) | `800` |
 | `PDF_MAX_THUMBNAIL_PAGES` | Maximum thumbnail pages per request | `10` |
+
+### Storage
+
+| Variable | Description | Default |
+|----------|-------------|---------|
 | `PDF_STORAGE_ENABLED` | Persist generated PDFs and thumbnails to disk and return signed download URLs | `false` |
 | `PDF_STORAGE_EXPIRY` | Signed download URL expiry duration (e.g. `1h`, `30m`, `7d`) | `1h` |
 | `PDF_STORAGE_RETENTION` | How long to keep stored files before cleanup (e.g. `24h`, `7d`) | `24h` |
-| `APP_URL` | Application base URL, used for generating fully-qualified signed download URLs | `http://localhost:3333` |
 | `DRIVE_DISK` | Storage backend: `fs` (local), `s3` (S3-compatible), or `gcs` (Google Cloud Storage) | `fs` |
 | `S3_ACCESS_KEY_ID` | S3 access key ID (required when `DRIVE_DISK=s3`) | none |
 | `S3_SECRET_ACCESS_KEY` | S3 secret access key (required when `DRIVE_DISK=s3`) | none |
@@ -154,6 +211,11 @@ Key settings:
 | `GCS_CLIENT_EMAIL` | GCS service account email (required when `DRIVE_DISK=gcs`) | none |
 | `GCS_PRIVATE_KEY` | GCS service account private key (required when `DRIVE_DISK=gcs`) | none |
 | `GCS_BUCKET` | GCS bucket name (required when `DRIVE_DISK=gcs`) | none |
+
+### Rate Limiting
+
+| Variable | Description | Default |
+|----------|-------------|---------|
 | `RATE_LIMIT_REQUESTS` | Max requests per duration window | `60` |
 | `RATE_LIMIT_DURATION` | Duration window for rate limiting | `1 minute` |
 | `RATE_LIMIT_BLOCK_FOR` | Block duration after limit exceeded | `5 minutes` |
@@ -239,9 +301,6 @@ The Docker image includes the following fonts pre-installed:
 ## Contributing
 See `CONTRIBUTING.md` for setup, workflow, and pull request guidance.
 
-## Deployment Checklist
-- Ensure Docker image tag and K8s manifests point to the correct version.
-- Confirm environment variables are set for the target environment.
 
 ## License
 MIT (see `LICENSE`).
