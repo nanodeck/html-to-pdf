@@ -39,7 +39,7 @@ export default defineConfig({
   providers: [
     () => import('@adonisjs/core/providers/app_provider'),
     () => import('@adonisjs/core/providers/edge_provider'),
-    () => import('@adonisjs/otel/otel_provider'),
+
     () => import('@adonisjs/core/providers/hash_provider'),
     () => import('@adonisjs/core/providers/vinejs_provider'),
     () => import('@adonisjs/drive/drive_provider'),

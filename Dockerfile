@@ -1,82 +1,86 @@
-FROM node:20-bookworm-slim AS deps
+FROM node:24-alpine AS deps
 WORKDIR /app
-RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates && rm -rf /var/lib/apt/lists/*
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 COPY package.json package-lock.json .npmrc ./
-RUN npm ci --omit=dev
+RUN npm ci --omit=dev \
+  && rm -rf node_modules/@img/sharp-libvips-linux-x64 \
+            node_modules/@img/sharp-linux-x64 \
+            node_modules/@napi-rs/canvas-linux-x64-gnu \
+            node_modules/pdfjs-dist/web \
+            node_modules/pdfjs-dist/image_decoders \
+            node_modules/pdfjs-dist/types \
+            node_modules/playwright-core/lib/vite \
+  && find node_modules -name '*.d.ts' -o -name '*.d.mts' -o -name '*.map' | xargs rm -f
 
-FROM node:20-bookworm-slim AS build
+FROM node:24-alpine AS build
 WORKDIR /app
-RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates && rm -rf /var/lib/apt/lists/*
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 COPY package.json package-lock.json .npmrc ./
 RUN npm ci
 COPY . .
 RUN npm run build
 
-FROM node:22-alpine AS node-bin
+FROM node:20-bookworm-slim AS fonts
+RUN sed -i 's/^Components: main$/Components: main contrib/' /etc/apt/sources.list.d/debian.sources \
+  && echo "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true" | debconf-set-selections \
+  && apt-get update \
+  && apt-get install -y --no-install-recommends ttf-mscorefonts-installer \
+  && rm -rf /var/lib/apt/lists/*
 
 FROM alpine:3.23 AS runtime
 WORKDIR /app
 
-# Copy only the Node.js binary (no npm — eliminates bundled npm vulnerabilities)
-COPY --from=node-bin /usr/local/bin/node /usr/local/bin/node
+COPY --from=build /usr/local/bin/node /usr/local/bin/node
 
-# Create non-root user
-RUN addgroup -g 1000 node && adduser -u 1000 -G node -s /bin/false -D node
-
-# Upgrade base packages for security patches, then install Chromium, fonts, and tini
-RUN apk upgrade --no-cache \
+RUN addgroup -g 1000 node && adduser -u 1000 -G node -s /bin/false -D node \
+  && apk upgrade --no-cache \
   && apk add --no-cache \
   libstdc++ \
   chromium \
   font-liberation \
-  font-noto \
-  font-noto-cjk \
-  font-noto-emoji \
   fontconfig \
   freetype \
   harfbuzz \
   nss \
   tini \
-  && fc-cache -f
+  && rm -rf /usr/lib/libLLVM*.so* /usr/lib/libgallium*.so \
+            /usr/lib/python3.12 /usr/lib/libpython3* \
+            /usr/lib/girepository-1.0 \
+            /usr/lib/chromium/ui_test.pak \
+            /usr/lib/chromium/chrome-sandbox \
+            /usr/lib/chromium/xdg-mime \
+            /usr/lib/chromium/xdg-settings \
+            /usr/lib/chromium/MEIPreload
 
-# Install Microsoft Core Fonts manually (no installer on Alpine)
-RUN apk add --no-cache --virtual .fetch-deps curl cabextract \
-  && mkdir -p /usr/share/fonts/truetype/msttcorefonts \
-  && for font in andale32 arial32 arialb32 comic32 courie32 georgi32 impact32 times32 trebuc32 verdan32 webdin32; do \
-  curl -sL "https://master.dl.sourceforge.net/project/corefonts/the%20fonts/final/${font}.exe" -o /tmp/${font}.exe \
-  && cabextract -q -d /usr/share/fonts/truetype/msttcorefonts /tmp/${font}.exe \
-  && rm /tmp/${font}.exe; \
-  done \
-  && fc-cache -f \
-  && apk del .fetch-deps
+COPY --from=fonts /usr/share/fonts/truetype/msttcorefonts /usr/share/fonts/truetype/msttcorefonts
+RUN fc-cache -f
 
-# Copy build output directly into /app
 COPY --from=build /app/build/ ./
 COPY --from=deps /app/node_modules ./node_modules
 
 RUN mkdir -p /app/storage && chown node:node /app/storage
 
-ENV NODE_ENV=production
-ENV HOST=0.0.0.0
-ENV PORT=3333
-ENV LOG_LEVEL=info
-ENV REQUEST_BODY_LIMIT=5mb
-ENV RATE_LIMIT_REQUESTS=60
-ENV RATE_LIMIT_DURATION="1 minute"
-ENV LIMITER_STORE=memory
-ENV PDF_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium-browser
-ENV PDF_CHROMIUM_ARGS=""
-ENV PDF_DISABLE_SANDBOX=false
-ENV PDF_TIMEOUT_MS=20000
-ENV PDF_NAVIGATION_TIMEOUT_MS=10000
-ENV PDF_VIEWPORT_WIDTH=1280
-ENV PDF_VIEWPORT_HEIGHT=720
-ENV PDF_WAIT_UNTIL=load
-ENV PDF_ALLOW_REMOTE=false
-ENV PDF_MAX_HTML_SIZE=2097152
-ENV PDF_THUMBNAIL_MAX_WIDTH=800
-ENV PDF_MAX_THUMBNAIL_PAGES=10
-ENV DRIVE_DISK=fs
+ENV NODE_ENV=production \
+    HOST=0.0.0.0 \
+    PORT=3333 \
+    LOG_LEVEL=info \
+    REQUEST_BODY_LIMIT=5mb \
+    RATE_LIMIT_REQUESTS=60 \
+    RATE_LIMIT_DURATION="1 minute" \
+    LIMITER_STORE=memory \
+    PDF_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium-browser \
+    PDF_CHROMIUM_ARGS="" \
+    PDF_DISABLE_SANDBOX=false \
+    PDF_TIMEOUT_MS=20000 \
+    PDF_NAVIGATION_TIMEOUT_MS=10000 \
+    PDF_VIEWPORT_WIDTH=1280 \
+    PDF_VIEWPORT_HEIGHT=720 \
+    PDF_WAIT_UNTIL=load \
+    PDF_ALLOW_REMOTE=false \
+    PDF_MAX_HTML_SIZE=2097152 \
+    PDF_THUMBNAIL_MAX_WIDTH=800 \
+    PDF_MAX_THUMBNAIL_PAGES=10 \
+    DRIVE_DISK=fs
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
   CMD node -e "fetch('http://localhost:3333/health').then(r=>{if(!r.ok)throw r.status}).catch(()=>process.exit(1))"
