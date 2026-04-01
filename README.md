@@ -226,18 +226,7 @@ The Docker image includes the following fonts pre-installed:
 | Liberation Sans | Regular, Bold, Italic, Bold Italic | Liberation (Arial-compatible) |
 | Liberation Serif | Regular, Bold, Italic, Bold Italic | Liberation (Times-compatible) |
 | Liberation Mono | Regular, Bold, Italic, Bold Italic | Liberation (Courier-compatible) |
-| Open Sans | Regular, Bold, Italic, Bold Italic, Light, SemiBold, ExtraBold + Condensed variants | Google |
-| Noto Sans | Regular, Bold, Italic, Bold Italic | Google Noto |
-| Noto Sans Mono | Regular, Bold | Google Noto |
-| Noto Sans Math | Regular | Google Noto |
-| Noto Sans Symbols | Regular, Bold + Thin/Light/Medium/SemiBold/ExtraBold/Black | Google Noto |
-| Noto Sans Symbols 2 | Regular | Google Noto |
-| Noto Serif | Regular, Bold, Italic, Bold Italic | Google Noto |
-| Noto Serif Display | Regular, Bold, Italic, Bold Italic | Google Noto |
-| Noto Sans CJK (SC/TC/HK/JP/KR) | Regular, Bold | CJK |
-| Noto Sans Mono CJK (SC/TC/HK/JP/KR) | Regular, Bold | CJK |
-| Noto Serif CJK (SC/TC/HK/JP/KR) | Regular, Bold | CJK |
-| Noto Color Emoji | Regular | Emoji |
+| Open Sans | Regular, Bold, Italic, Bold Italic, Light, SemiBold, ExtraBold + Condensed variants | Alpine `font-opensans` (chromium dep) |
 
 ## Security Notes
 - Remote fetching is blocked by default (`PDF_ALLOW_REMOTE=false`).
