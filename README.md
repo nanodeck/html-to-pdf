@@ -302,5 +302,11 @@ The Docker image includes the following fonts pre-installed:
 See `CONTRIBUTING.md` for setup, workflow, and pull request guidance.
 
 
+## Also by Nanodeck
+
+| Project | Description |
+|---------|-------------|
+| [url-to-markdown](https://github.com/nanodeck/url-to-markdown) | Self-hosted API to convert any web page to clean Markdown. Handles JS-rendered sites, bypasses bot detection, extracts links, and captures screenshots. |
+
 ## License
 MIT (see `LICENSE`).
