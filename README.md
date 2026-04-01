@@ -159,14 +159,6 @@ Key settings:
 | `RATE_LIMIT_BLOCK_FOR` | Block duration after limit exceeded | `5 minutes` |
 | `LIMITER_STORE` | Rate limiter backend store | `memory` |
 
-## Observability
-This service supports OpenTelemetry (traces, metrics, and logs). Configure exporters via standard OTEL env vars.
-
-Common OTLP settings:
-- `OTEL_EXPORTER_OTLP_ENDPOINT`: e.g. `http://otel-collector:4317`
-- `OTEL_EXPORTER_OTLP_HEADERS`: optional headers (e.g. `Authorization=Bearer token`)
-- `OTEL_SERVICE_NAME`: overrides the service name if set (otherwise uses `APP_NAME`)
-
 ## Kubernetes
 An example manifest is provided in [`k8s/deployment.example.yaml`](k8s/deployment.example.yaml). It includes a Namespace, Secret, ConfigMap, PVC, Deployment, Service, and a CronJob that runs `storage:cleanup` every hour.
 
