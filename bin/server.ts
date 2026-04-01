@@ -9,7 +9,6 @@
 |
 */
 
-
 import 'reflect-metadata'
 import { Ignitor, prettyPrintError } from '@adonisjs/core'
 
