@@ -11,9 +11,17 @@ Fast, hardened HTML-to-PDF rendering service built with Playwright. It exposes a
 
 ## Quickstart
 ```bash
-npm install
-cp .env.example .env
-npm run dev
+docker run --rm -p 3333:3333 \
+  -e APP_KEY=$(openssl rand -hex 16) \
+  -e NODE_ENV=production \
+  ghcr.io/nanodeck/html-to-pdf:latest
+```
+
+Try it:
+```bash
+curl -X POST http://localhost:3333/api/pdf \
+  -H 'Content-Type: application/json' \
+  -d '{"html":"<h1>Hello PDF</h1>"}' | jq -r .data | base64 -d > hello.pdf
 ```
 
 OpenAPI UI: `http://localhost:3333/api`
