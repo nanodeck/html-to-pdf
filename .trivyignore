@@ -1,0 +1,5 @@
+# GHSA-6qvv-pj99-48qm / CVE-2026-40255 — @adonisjs/core open redirect via response.redirect().back()
+# Vulnerable code lives in @adonisjs/http-server. Our installed @adonisjs/http-server is 8.2.0 (patched).
+# Advisory still flags @adonisjs/core <= 7.3.1 because upstream has not cut 7.4.0 yet.
+# This app does not use response.redirect() anywhere, so the vector is not reachable.
+CVE-2026-40255

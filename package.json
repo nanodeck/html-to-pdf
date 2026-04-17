@@ -20,7 +20,9 @@
     "#mails/*": "./app/mails/*.js",
     "#services/*": "./app/services/*.js",
     "#schemas/*": "./app/schemas/*.js",
-    "#mcp/*": "./app/mcp/*.js",
+    "#generated/*": "./.adonisjs/server/*.js",
+    "#transformers/*": "./app/transformers/*.js",
+    "#database/*": "./database/*.js",
     "#listeners/*": "./app/listeners/*.js",
     "#events/*": "./app/events/*.js",
     "#middleware/*": "./app/middleware/*.js",
@@ -28,57 +30,50 @@
     "#providers/*": "./providers/*.js",
     "#policies/*": "./app/policies/*.js",
     "#abilities/*": "./app/abilities/*.js",
-    "#database/*": "./database/*.js",
     "#start/*": "./start/*.js",
     "#tests/*": "./tests/*.js",
     "#config/*": "./config/*.js"
   },
   "devDependencies": {
-    "@adonisjs/assembler": "^7.8.2",
-    "@adonisjs/eslint-config": "^2.0.0",
-    "@adonisjs/prettier-config": "^1.4.4",
-    "@adonisjs/tsconfig": "^1.4.0",
+    "@adonisjs/assembler": "^8.4.0",
+    "@adonisjs/eslint-config": "^3.0.0",
+    "@adonisjs/prettier-config": "^1.4.5",
+    "@adonisjs/tsconfig": "^2.0.0",
     "@japa/api-client": "^3.2.1",
     "@japa/assert": "^4.0.1",
-    "@japa/plugin-adonisjs": "^4.0.0",
-    "@japa/runner": "4.1.0",
-    "@swc/core": "1.11.24",
-    "@types/node": "^22.15.18",
-    "eslint": "^9.26.0",
-    "hot-hook": "^0.4.0",
+    "@japa/plugin-adonisjs": "^5.2.0",
+    "@japa/runner": "^5.3.0",
+    "@poppinss/ts-exec": "^1.4.4",
+    "@types/node": "^24.12.2",
+    "eslint": "^10.2.0",
+    "hot-hook": "^1.0.0",
     "pino-pretty": "^13.0.0",
     "prettier": "^3.5.3",
-    "ts-node-maintained": "^10.9.6",
-    "typescript": "~5.8"
+    "typescript": "^6.0.2",
+    "youch": "^4.1.1"
   },
   "dependencies": {
-    "@7nohe/adonis-mcp": "^1.1.0-0",
-    "@adonisjs/core": "^6.18.0",
-    "@adonisjs/drive": "3.4.1",
-    "@adonisjs/limiter": "^2.4.0",
+    "@adonisjs/core": "^7.3.1",
+    "@adonisjs/drive": "^4.0.0",
+    "@adonisjs/limiter": "^3.0.1",
     "@aws-sdk/client-s3": "^3.1020.0",
     "@aws-sdk/s3-request-presigner": "^3.1020.0",
-    "@foadonis/openapi": "^0.5.1",
-    "@google-cloud/storage": "^5.18.3",
-    "@modelcontextprotocol/sdk": "^1.29.0",
-    "@vinejs/vine": "^4.3.0",
-    "edge.js": "^6.4.0",
+    "@foadonis/openapi": "^1.0.1",
+    "@google-cloud/storage": "^7.19.0",
+    "@vinejs/vine": "^4.3.1",
+    "edge.js": "^6.5.0",
     "lodash": "^4.18.1",
     "luxon": "^3.7.2",
-    "pdf-to-img": "^5.0.0",
+    "pdf-to-img": "^6.0.0",
     "playwright": "^1.58.1",
     "reflect-metadata": "^0.2.2",
-    "sharp": "^0.34.5",
-    "zod": "^3.24.4"
+    "sharp": "^0.34.5"
   },
   "hotHook": {
     "boundaries": [
       "./app/controllers/**/*.ts",
       "./app/middleware/*.ts"
     ]
-  },
-  "resolutions": {
-    "@japa/core": "10.3.0"
   },
   "overrides": {
     "tar": "^7.5.11",
@@ -90,7 +85,9 @@
     "diff": "^5.2.2",
     "lodash-es": "^4.18.1",
     "hono": "^4.12.14",
-    "@adonisjs/http-server": "^7.8.1"
+    "@tootallnate/once": "^3.0.1",
+    "http-proxy-agent": "^7.0.2",
+    "teeny-request": "^10.1.2"
   },
   "eslintConfig": {
     "extends": "@adonisjs/eslint-config/app"
