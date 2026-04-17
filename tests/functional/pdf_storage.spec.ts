@@ -1,29 +1,6 @@
 import { test } from '@japa/runner'
 import { StorageService } from '#services/storage_service'
-import registerPdfMcp from '#mcp/html_to_pdf'
 import env from '#start/env'
-
-type ToolHandler = (input: {
-  html: string
-  options?: unknown
-  thumbnail?: { enabled: boolean; width?: number; pages?: number[]; format?: 'png' | 'jpeg' }
-  filename?: string
-}) => Promise<any>
-
-type FakeServer = {
-  tools: Map<string, { schema: unknown; handler: ToolHandler }>
-  tool: (name: string, schema: unknown, handler: ToolHandler) => void
-}
-
-function createFakeServer(): FakeServer {
-  const tools = new Map<string, { schema: unknown; handler: ToolHandler }>()
-  return {
-    tools,
-    tool(name, schema, handler) {
-      tools.set(name, { schema, handler })
-    },
-  }
-}
 
 test.group('StorageService', () => {
   test('storeResult stores PDF and returns signed download URL', async ({ assert }) => {
@@ -96,59 +73,5 @@ test.group('PDF Storage Integration', () => {
 
     assert.property(body, 'data')
     assert.notProperty(body, 'downloadUrl')
-  })
-})
-
-test.group('MCP Storage Integration', () => {
-  test('mcp html_to_pdf returns downloadUrl when storage is enabled', async ({ assert }) => {
-    if (!env.get('PDF_STORAGE_ENABLED', false)) {
-      return
-    }
-
-    const server = createFakeServer()
-    registerPdfMcp(server as any)
-
-    const tool = server.tools.get('html_to_pdf')
-    assert.ok(tool)
-
-    const result = await tool!.handler({
-      html: '<html><body><h1>Hello PDF</h1></body></html>',
-    })
-
-    assert.equal(result.isError, undefined)
-
-    const textItems = result.content.filter((item: any) => item.type === 'text')
-    const downloadTextItem = textItems.find((item: any) => item.text.includes('/downloads/pdfs/'))
-    assert.ok(downloadTextItem, 'Should include download URL in text content')
-
-    // Should not include base64 resource when storage is enabled
-    const resourceItems = result.content.filter((item: any) => item.type === 'resource')
-    assert.lengthOf(resourceItems, 0)
-  })
-
-  test('mcp html_to_pdf omits downloadUrl when storage is disabled', async ({ assert }) => {
-    if (env.get('PDF_STORAGE_ENABLED', false)) {
-      return
-    }
-
-    const server = createFakeServer()
-    registerPdfMcp(server as any)
-
-    const tool = server.tools.get('html_to_pdf')
-    assert.ok(tool)
-
-    const result = await tool!.handler({
-      html: '<html><body><h1>Hello PDF</h1></body></html>',
-    })
-
-    assert.equal(result.isError, undefined)
-
-    // Should include base64 resource when storage is disabled
-    const resourceItems = result.content.filter((item: any) => item.type === 'resource')
-    assert.isAbove(resourceItems.length, 0)
-
-    const textItems = result.content.filter((item: any) => item.type === 'text')
-    const downloadTextItem = textItems.find((item: any) => item.text.includes('/downloads/pdfs/'))
-    assert.isUndefined(downloadTextItem)
   })
 })

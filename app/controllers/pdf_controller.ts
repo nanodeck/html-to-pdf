@@ -1,4 +1,4 @@
-import type { HttpContext, Response } from '@adonisjs/core/http'
+import type { HttpContext, HttpResponse } from '@adonisjs/core/http'
 import type { Logger } from '@adonisjs/core/logger'
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@foadonis/openapi/decorators'
 import env from '#start/env'
@@ -92,7 +92,7 @@ export default class PdfController {
   private async renderPdf(
     html: string,
     options: Record<string, unknown>,
-    response: Response,
+    response: HttpResponse,
     logger: Logger
   ): Promise<Buffer | null> {
     try {
@@ -108,7 +108,7 @@ export default class PdfController {
   private async renderThumbnails(
     pdfBuffer: Buffer,
     thumbnailOptions: ThumbnailOptions | undefined,
-    response: Response,
+    response: HttpResponse,
     logger: Logger
   ): Promise<Thumbnail[] | null> {
     if (!thumbnailOptions?.enabled) {
@@ -130,7 +130,7 @@ export default class PdfController {
     pdfBuffer: Buffer,
     filename: string,
     thumbnails: Thumbnail[],
-    response: Response,
+    response: HttpResponse,
     logger: Logger
   ): Promise<StorageResult | null | false> {
     if (!env.get('PDF_STORAGE_ENABLED', false)) {
