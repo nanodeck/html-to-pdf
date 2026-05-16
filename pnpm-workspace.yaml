@@ -1,0 +1,19 @@
+minimumReleaseAge: 10080
+resolutionMode: highest
+overrides:
+  # CVE: lodash-es (transitive via @adonisjs/prettier-config > chevrotain)
+  lodash-es: ^4.18.1
+  # Forces @google-cloud/storage onto modern http stack, drops vulnerable @tootallnate/once chain
+  teeny-request: ^10.1.2
+  http-proxy-agent: ^7.0.2
+  '@tootallnate/once': ^3.0.1
+  # picomatch v2.x ReDoS — keep tree on v4+ only
+  picomatch: ^4.0.4
+
+allowBuilds:
+  '@parcel/watcher': true
+  '@swc/core': true
+  esbuild: true
+  playwright: true
+  playwright-core: true
+  sharp: true
