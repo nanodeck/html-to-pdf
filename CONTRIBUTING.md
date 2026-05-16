@@ -4,34 +4,34 @@ Thanks for helping improve HTML to PDF API. This guide covers how to set up the 
 
 ## Prerequisites
 
-- Node.js 20+ (or the version specified by your environment)
-- npm (or your preferred package manager)
+- Node.js 24 (see `.node-version`)
+- pnpm 9 (enable via `corepack enable`)
 
 If Playwright browsers are missing, install Chromium:
 
 ```bash
-npx playwright install chromium
+pnpm exec playwright install chromium
 ```
 
 ## Setup
 
 ```bash
-npm install
+pnpm install
 cp .env.example .env
 ```
 
 ## Run the App
 
 ```bash
-npm run dev
+pnpm dev
 ```
 
 ## Run Checks
 
 ```bash
-npm run lint
-npm test
-npm run typecheck
+pnpm lint
+pnpm test
+pnpm typecheck
 ```
 
 ## Pull Requests

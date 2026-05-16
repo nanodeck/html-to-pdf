@@ -1,24 +1,26 @@
 FROM node:24-alpine AS deps
 WORKDIR /app
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
-COPY package.json package-lock.json .npmrc ./
-RUN npm ci --omit=dev \
-  && rm -rf node_modules/@img/sharp-libvips-linux-x64 \
-            node_modules/@img/sharp-linux-x64 \
-            node_modules/@napi-rs/canvas-linux-x64-gnu \
-            node_modules/pdfjs-dist/web \
-            node_modules/pdfjs-dist/image_decoders \
-            node_modules/pdfjs-dist/types \
-            node_modules/playwright-core/lib/vite \
+RUN corepack enable && corepack prepare pnpm@11.1.2 --activate
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
+RUN pnpm install --frozen-lockfile --prod \
+  && rm -rf node_modules/.pnpm/@img+sharp-libvips-linux-x64@* \
+            node_modules/.pnpm/@img+sharp-linux-x64@* \
+            node_modules/.pnpm/@napi-rs+canvas-linux-x64-gnu@* \
+            node_modules/.pnpm/pdfjs-dist@*/node_modules/pdfjs-dist/web \
+            node_modules/.pnpm/pdfjs-dist@*/node_modules/pdfjs-dist/image_decoders \
+            node_modules/.pnpm/pdfjs-dist@*/node_modules/pdfjs-dist/types \
+            node_modules/.pnpm/playwright-core@*/node_modules/playwright-core/lib/vite \
   && find node_modules -name '*.d.ts' -o -name '*.d.mts' -o -name '*.map' | xargs rm -f
 
 FROM node:24-alpine AS build
 WORKDIR /app
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
-COPY package.json package-lock.json .npmrc ./
-RUN npm ci
+RUN corepack enable && corepack prepare pnpm@11.1.2 --activate
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
+RUN pnpm install --frozen-lockfile
 COPY . .
-RUN npm run build
+RUN pnpm run build
 
 FROM node:20-bookworm-slim AS fonts
 RUN sed -i 's/^Components: main$/Components: main contrib/' /etc/apt/sources.list.d/debian.sources \

@@ -275,15 +275,15 @@ docker run --rm -p 3333:3333 --env-file .env html-to-pdf
 ## Development
 
 ```bash
-npm run dev
+pnpm dev
 ```
 
 Lint, tests, and types:
 
 ```bash
-npm run lint
-npm test
-npm run typecheck
+pnpm lint
+pnpm test
+pnpm typecheck
 ```
 
 ## Available Fonts
