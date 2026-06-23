@@ -9,6 +9,17 @@ overrides:
   '@tootallnate/once': ^3.0.1
   # picomatch v2.x ReDoS — keep tree on v4+ only
   picomatch: ^4.0.4
+  # CVE-2026-12143 (GHSA-hmw2-7cc7-3qxx): CRLF injection in form-data
+  # Transitive via @types/request (gcs) and superagent (japa api-client)
+  'form-data@<2.5.6': ^2.5.6
+  'form-data@>=4.0.0 <4.0.6': ^4.0.6
+  # GHSA-qx55-c5gh-3wm5: qs.stringify DoS on comma-format null/undefined entries
+  # Transitive via superagent (japa api-client)
+  'qs@>=6.11.1 <6.15.2': ^6.15.2
+  # GHSA-rrqm-p222-8ph2: uuid missing buffer bounds check in v3/v5/v6
+  # Transitive via @google-cloud/storage / gaxios. Both only call uuid.v4(),
+  # which is API-compatible with uuid v11.
+  uuid: ^11.1.1
 
 allowBuilds:
   '@parcel/watcher': true
