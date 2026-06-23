@@ -17,6 +17,8 @@ env:
 jobs:
   test:
     runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.59.1-noble
     permissions:
       contents: read
     steps:
@@ -32,8 +34,6 @@ jobs:
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile
-
-      - run: pnpm exec playwright install chromium --with-deps
 
       - run: pnpm run lint
 
