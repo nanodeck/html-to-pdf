@@ -20,6 +20,9 @@ overrides:
   # Transitive via @google-cloud/storage / gaxios. Both only call uuid.v4(),
   # which is API-compatible with uuid v11.
   uuid: ^11.1.1
+  # CVE-2026-48795 (GHSA-qcm7-3vpr-hj5h): incomplete fix for CVE-2026-25754 in
+  # @adonisjs/bodyparser multipart handling. Transitive via @adonisjs/core.
+  '@adonisjs/bodyparser@>=11.0.0-next.9 <11.0.3': ^11.0.3
 
 allowBuilds:
   '@parcel/watcher': true
